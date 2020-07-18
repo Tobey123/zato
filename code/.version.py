@@ -29,7 +29,7 @@ release = open(os.path.join(release_info_dir, 'release.json')).read()
 release = json.loads(release)
 
 #
-# This is last git commit ID.
+# This is the last git commit ID.
 #
 # Make sure to use -C to specify the git directory instead of navigating to it directly;
 # the latter may result in spurious pip errors, such as:

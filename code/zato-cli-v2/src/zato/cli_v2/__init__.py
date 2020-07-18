@@ -99,7 +99,7 @@ def handle_version_verbose(zato_version):
     python_details = '\n'.join(python_details)
 
     # A common pattern for git output details
-    git_pretty = """--pretty=* %h %d%n* %aN <%aE>%n* %s  %n* %ad %n* %ar"""
+    git_pretty = """--pretty=* %H%n* %aN <%aE>%n* %s  %n* %ad %n* %ar"""
 
     with sh.pushd(git_dir):
 
@@ -149,13 +149,12 @@ def handle_version_verbose(zato_version):
             commit_data = sh.git('show', git_pretty, commit_id, '--no-patch', '--no-color', _tty_out=False).strip()
             local_commits.append(commit_data)
 
-        if local_commits:
-            for local_commit in local_commits:
-                value_length = max(value_length, max(len(elem) for elem in local_commit.splitlines()))
+        local_commits = local_commits or '---'
 
-            local_commits = '\n\n'.join(local_commits)
-        else:
-            local_commits = '---'
+        for local_commit in local_commits:
+            value_length = max(value_length, max(len(elem) for elem in local_commit.splitlines()))
+
+        local_commits = '\n\n'.join(local_commits)
 
     # Key/value
     len_columns = 2
@@ -176,7 +175,8 @@ def handle_version_verbose(zato_version):
         ['Python', python_details],
 
         ['Git branch', '* %s' % local_branch],
-        ['Git remote',         '* %s' % initial_remote],
+        ['Git remote', '* %s' % 'ZZZ'],
+        ['Git initial remote',         '* %s' % initial_remote],
         ['Git initial commit', '* %s' % initial_commit],
 
         ['Git last commit',   last_commit],

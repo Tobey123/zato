@@ -31,6 +31,9 @@ fi
 # Stamp the release hash.
 git log -n 1 --pretty=format:"%H" > ./release-info/revision.txt
 
+# Log the last commit ID for use in zato --version --verbose.
+git log -n 1 --pretty=format:"%H" > $CURDIR/release-info/last-update.txt
+
 $PY_BINARY -m pip install -U setuptools pip
 
 # SciPy builds require NumPy available in setup.py, so install it separately.

@@ -101,7 +101,9 @@ def handle_version_verbose(zato_version):
     with sh.pushd(git_dir):
 
         # Details of the last commit
-        last_commit = sh.git('log', '-1', '--pretty=* %H%n* %ad%n* %s', '--date=iso', _tty_out=False).strip() # type: str
+        last_commit = sh.git('log', '-1',
+            """--pretty=* %H%n* %s %n* %aN <%aE> %n* %ad %n* %ar%n""",
+            '--date=iso', _tty_out=False).strip() # type: str
         value_length = max(value_length, max(len(elem) for elem in last_commit.splitlines()))
 
         # A list of local updates that have no been committed locally
@@ -112,8 +114,13 @@ def handle_version_verbose(zato_version):
         # made between the first installation commit and the last update commit.
         # Because all update commits are made by us, anything that was not an update commit
         # must have been a local commit.
+
         local_commits = 'zzz'#sh.git('cherry', '-v').rstrip() or '---'
-        value_length = max(value_length, max(len(elem) for elem in local_commits.splitlines()))
+
+        #release_dir = abspath(path_join(
+        #install_commit
+
+        #value_length = max(value_length, max(len(elem) for elem in local_commits.splitlines()))
 
     # Key/value
     len_columns = 2

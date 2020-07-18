@@ -98,13 +98,13 @@ def handle_version_verbose(zato_version):
     python_details.append('* %s ' % executable)
     python_details = '\n'.join(python_details)
 
+    # A common pattern for git output details
+    git_pretty = """--pretty=* %H%n* %aN <%aE>%n* %s  %n* %ad %n* %ar"""
+
     with sh.pushd(git_dir):
 
         # Details of the last commit
-        last_commit = sh.git(
-            'log', '-1',
-            """--pretty=* %H%n* %s %n* %aN <%aE> %n* %ad %n* %ar%n""",
-            '--date=iso', _tty_out=False).strip() # type: str
+        last_commit = sh.git('log', '-1', git_pretty, '--date=iso', _tty_out=False).strip() # type: str
         value_length = max(value_length, max(len(elem) for elem in last_commit.splitlines()))
 
         # A list of local updates that have no been committed locally
@@ -123,6 +123,8 @@ def handle_version_verbose(zato_version):
 
         release_dir = abspath(path_join(git_dir, 'code', 'release-info'))
 
+        local_branch = sh.git('name-rev', '--name-only', 'HEAD').strip() # type: str
+
         initial_commit = open(path_join(release_dir, 'revision.txt')).read().strip()    # type: str
         initial_remote = open(path_join(release_dir, 'initial-remote.txt')).read().strip() # type: str
 
@@ -136,26 +138,29 @@ def handle_version_verbose(zato_version):
             'rev-list', '--ancestry-path', '{}..HEAD'.format(initial_commit)).strip().splitlines() # type: list
 
         # A list of local commits, sorted from newest to oldest
-        local_commits = []
+        local_commits   = []
+        local_commit_id = []
 
-        for commit_id in between_initial_and_head:
+        for commit_id in between_initial_and_head: # type: str
             if commit_id not in between_initial_and_remote:
-                local_commits.append(commit_id)
+                local_commit_id.append(commit_id)
 
-        print(111, local_commits)
+        for commit_id in local_commit_id: # type: str
+            commit_data = sh.git('show', git_pretty, commit_id, '--no-patch', '--no-color', _tty_out=False).strip()
+            local_commits.append(commit_data)
 
-        #print(111, initial_commit)
-        #print(222, initial_remote)
+        local_commits = local_commits or '---'
 
-        local_commits = 'zzz'#sh.git('cherry', '-v').rstrip() or '---'
+        for local_commit in local_commits:
+            value_length = max(value_length, max(len(elem) for elem in local_commit.splitlines()))
 
-        #value_length = max(value_length, max(len(elem) for elem in local_commits.splitlines()))
+        local_commits = '\n\n'.join(local_commits)
 
     # Key/value
     len_columns = 2
 
     table = Texttable()
-    table.set_cols_width([17, value_length])
+    table.set_cols_width([20, value_length])
     table.set_cols_dtype(['t'] * len_columns)
     table.set_cols_align(['c', 't'])
     table.set_cols_valign(['m'] * len_columns)
@@ -169,6 +174,10 @@ def handle_version_verbose(zato_version):
         ['System', system_version],
         ['Python', python_details],
 
+        ['Git branch', '* %s' % local_branch],
+        ['Git remote',         '* %s' % initial_remote],
+        ['Git initial commit', '* %s' % initial_commit],
+
         ['Git last commit',   last_commit],
         ['Git local updates', local_updates],
         ['Git local commits', local_commits],
@@ -178,7 +187,7 @@ def handle_version_verbose(zato_version):
     table.add_rows(rows)
 
     # .. and print it out.
-    #stdout.write(table.draw() + '\n')
+    stdout.write(table.draw() + '\n')
     stdout.flush()
 
     _exit(0)

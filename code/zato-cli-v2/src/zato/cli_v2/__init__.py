@@ -101,7 +101,8 @@ def handle_version_verbose(zato_version):
     with sh.pushd(git_dir):
 
         # Details of the last commit
-        last_commit = sh.git('log', '-1',
+        last_commit = sh.git(
+            'log', '-1',
             """--pretty=* %H%n* %s %n* %aN <%aE> %n* %ad %n* %ar%n""",
             '--date=iso', _tty_out=False).strip() # type: str
         value_length = max(value_length, max(len(elem) for elem in last_commit.splitlines()))
@@ -125,11 +126,26 @@ def handle_version_verbose(zato_version):
         initial_commit = open(path_join(release_dir, 'revision.txt')).read().strip()    # type: str
         initial_remote = open(path_join(release_dir, 'initial-remote.txt')).read().strip() # type: str
 
-        commits_between_initial_and_remote = []
-        commits_between_initial_and_head   = []
+        between_initial_and_remote = sh.git(
+            'rev-list', '--ancestry-path', '{}..{}'.format(initial_commit, initial_remote)).strip().splitlines()
 
-        print(111, initial_commit)
-        print(222, initial_remote)
+        # Convert it to a set to make lookups faster
+        between_initial_and_remote = set(between_initial_and_remote)
+
+        between_initial_and_head = sh.git(
+            'rev-list', '--ancestry-path', '{}..HEAD'.format(initial_commit)).strip().splitlines() # type: list
+
+        # A list of local commits, sorted from newest to oldest
+        local_commits = []
+
+        for commit_id in between_initial_and_head:
+            if commit_id not in between_initial_and_remote:
+                local_commits.append(commit_id)
+
+        print(111, local_commits)
+
+        #print(111, initial_commit)
+        #print(222, initial_remote)
 
         local_commits = 'zzz'#sh.git('cherry', '-v').rstrip() or '---'
 

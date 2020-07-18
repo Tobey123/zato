@@ -123,7 +123,11 @@ def handle_version_verbose(zato_version):
 
         release_dir = abspath(path_join(git_dir, 'code', 'release-info'))
 
+        # Current branch name
         local_branch = sh.git('name-rev', '--name-only', 'HEAD').strip() # type: str
+
+        # The remote the current branch tracks, if any
+        branch_remote = sh.git('for-each-ref', '--format="%(upstream:short)"', "$(git symbolic-ref -q HEAD)") # type: str
 
         initial_commit = open(path_join(release_dir, 'revision.txt')).read().strip()    # type: str
         initial_remote = open(path_join(release_dir, 'initial-remote.txt')).read().strip() # type: str
@@ -175,7 +179,7 @@ def handle_version_verbose(zato_version):
         ['Python', python_details],
 
         ['Git branch', '* %s' % local_branch],
-        ['Git remote', '* %s' % 'ZZZ'],
+        ['Git remote', '* %s' % branch_remote],
         ['Git initial remote',         '* %s' % initial_remote],
         ['Git initial commit', '* %s' % initial_commit],
 

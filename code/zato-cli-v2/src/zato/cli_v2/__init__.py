@@ -99,7 +99,7 @@ def handle_version_verbose(zato_version):
     python_details = '\n'.join(python_details)
 
     # A common pattern for git output details
-    git_pretty = """--pretty=* %H %d%n* %aN <%aE>%n* %s  %n* %ad %n* %ar"""
+    git_pretty = """--pretty=* %h %d%n* %aN <%aE>%n* %s  %n* %ad %n* %ar"""
 
     with sh.pushd(git_dir):
 

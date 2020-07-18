@@ -41,11 +41,14 @@ def handle_version_verbose(zato_version):
     # sh
     import sh
 
+    # Texttable
+    from texttable import Texttable
+
     # Get a distribution object describing the current system ..
     distro = LinuxDistribution()
 
-    # .. and print out basic distro information.
-    stdout.write('%s %s\n' % (distro._os_release_info['name'], distro._os_release_info['version']),)
+    # .. build a system version object.
+    system_version = '%s %s' % (distro._os_release_info['name'], distro._os_release_info['version'])
 
     # Get path to source code to be able to check the latest commit and any local changes.
     bin_dir = dirname(executable)
@@ -53,33 +56,42 @@ def handle_version_verbose(zato_version):
 
     with sh.pushd(git_dir):
 
-        # This is the local last git commit
-        last_commit = sh.git('rev-parse', 'HEAD').strip()
+        # Details of the last commit
+        last_commit = sh.git('log', '-1', '--pretty=* %H%n* %ad%n* %s', '--date=iso', _tty_out=False).strip()
 
         # A list of local updates that have no been committed locally
-        local_updates = sh.git('status', '-s').strip().splitlines()
-
-        if local_updates:
-            local_updates = [' ' + elem for elem in local_updates]
-            local_updates = '\n' + '\n'.join(local_updates)
-        else:
-            local_updates = ' <none>'
+        local_updates = sh.git('status', '--porcelain').rstrip() or '---'
 
         # A list of local commits that have not been pushed
-        local_commits = sh.git('cherry', '-v').strip()
+        local_commits = sh.git('cherry', '-v').rstrip() or '---'
 
-        if local_commits:
-            local_commits = [' ' + elem for elem in local_commits]
-            local_commits = '\n' + '\n'.join(local_commits)
-        else:
-            local_commits = ' <none>'
+    # Key/value
+    len_columns = 2
 
-    stdout.write('Zato version:   %s\n' % (last_commit))
-    stdout.write('System version: %s\n' % (last_commit))
-    stdout.write('Git commit ID:  %s\n' % (last_commit))
-    stdout.write('Git timestamp:  %s\n' % (local_commits),)
-    stdout.write('Local updates:  %s\n' % (local_updates),)
-    stdout.write('Local commits:  %s\n' % (local_commits),)
+    table = Texttable()
+    table.set_cols_width([17, 60])
+    table.set_cols_dtype(['t'] * len_columns)
+    table.set_cols_align(['t'] * len_columns)
+    table.set_cols_valign(['m'] * len_columns)
+
+    # Headers
+    rows = [['Key', 'Value']]
+
+    # Data rows
+    rows += [
+        ['Zato version',      zato_version],
+        ['System version',    system_version],
+        ['Git last commit',   last_commit],
+        ['Git local updates', local_updates],
+        ['Git local commits', local_commits],
+    ]
+
+    # Add all rows to the table ..
+    table.add_rows(rows)
+
+    # .. and print it out.
+    stdout.write(table.draw() + '\n')
+    stdout.flush()
 
     _exit(0)
 
@@ -99,6 +111,7 @@ def main():
         # Zato
         from zato.cli_v2.zato_version import get_version
 
+        # Needed no matter if are --verbose or not
         zato_version = get_version()
 
         # This is --version --verbose with all the details

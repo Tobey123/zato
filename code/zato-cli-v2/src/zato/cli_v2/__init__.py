@@ -110,15 +110,28 @@ def handle_version_verbose(zato_version):
         local_updates = sh.git('status', '--porcelain').rstrip() or '---'
         value_length = max(value_length, max(len(elem) for elem in local_updates.splitlines()))
 
-        # A list of local commits that have not been pushed is composed of any commits
-        # made between the first installation commit and the last update commit.
-        # Because all update commits are made by us, anything that was not an update commit
-        # must have been a local commit.
+        #
+        # Local commits that have not been pushed are found by comparing two lists:
+        #
+        # * Commits between the initial installation commit and installation remote
+        # * Commits between the initial installation commit and HEAD
+        #
+        # If something is in the second list but is not in the first one,
+        # it means that it was added locally because otherwise it would have been in remote already.
+        #
+
+        release_dir = abspath(path_join(git_dir, 'code', 'release-info'))
+
+        initial_commit = open(path_join(release_dir, 'revision.txt')).read().strip()    # type: str
+        initial_remote = open(path_join(release_dir, 'initial-remote.txt')).read().strip() # type: str
+
+        commits_between_initial_and_remote = []
+        commits_between_initial_and_head   = []
+
+        print(111, initial_commit)
+        print(222, initial_remote)
 
         local_commits = 'zzz'#sh.git('cherry', '-v').rstrip() or '---'
-
-        #release_dir = abspath(path_join(
-        #install_commit
 
         #value_length = max(value_length, max(len(elem) for elem in local_commits.splitlines()))
 
@@ -149,7 +162,7 @@ def handle_version_verbose(zato_version):
     table.add_rows(rows)
 
     # .. and print it out.
-    stdout.write(table.draw() + '\n')
+    #stdout.write(table.draw() + '\n')
     stdout.flush()
 
     _exit(0)

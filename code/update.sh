@@ -16,5 +16,6 @@ echo "*** Installing updates ***"
 $CURDIR/bin/pip install -e $CURDIR/zato-cy
 $CURDIR/bin/pip install -r $CURDIR/requirements.txt
 
-# Log the last commit ID for use in zato --version --verbose
-git log -n 1 --pretty=format:"%H" > $CURDIR/release-info/last-update.txt
+# Log the last commit metadata for use in zato --version --verbose
+git log -n 1 --pretty=format:"%H" > $CURDIR/release-info/last-update-commit.txt
+git log -n 1 --pretty=format:"%H" > $CURDIR/release-info/last-update-origin.txt

@@ -31,8 +31,13 @@ fi
 # Stamp the release hash.
 git log -n 1 --pretty=format:"%H" > ./release-info/revision.txt
 
-# Log the last commit ID for use in zato --version --verbose.
-git log -n 1 --pretty=format:"%H" > $CURDIR/release-info/last-update.txt
+CURRENT_BRANCH=`git name-rev --name-only HEAD`
+REMOTE_NAME=`git config branch.$CURRENT_BRANCH.remote`
+INITIAL_REMOTE=$REMOTE_NAME/$CURRENT_BRANCH
+
+# Log git metadata for use in zato --version --verbose.
+git log -n 1 --pretty=format:"%H" > $CURDIR/release-info/last-update-commit.txt
+echo $INITIAL_REMOTE > $CURDIR/release-info/initial-remote.txt
 
 $PY_BINARY -m pip install -U setuptools pip
 

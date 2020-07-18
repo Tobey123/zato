@@ -25,12 +25,24 @@ def get_version(with_name=True):
         _version_py = os.path.normpath(os.path.join(curdir, '..', '..', '..', '..', '.version.py'))
         _locals = {}
         execfile(_version_py, _locals)
-        version = '{}{}'.format('Zato ' if with_name else '', _locals['version'])
-    except IOError:
-        version = '3.1'
-    finally:
-        version = '{}-py{}.{}.{}'.format(version, py_version_info.major, py_version_info.minor, py_version_info.micro)
 
-    return version
+        release = _locals['version']
+        version  = '{}{}'.format('Zato ' if with_name else '', release)
+
+    except IOError:
+        release = version = '3.1'
+
+    finally:
+
+        rev_idx = release.find('+rev')
+        release = release[:rev_idx]
+
+        full_version = '{}-py{}.{}.{}'.format(
+            version, py_version_info.major, py_version_info.minor, py_version_info.micro)
+
+    return {
+        'release': release,
+        'version':  full_version
+    }
 
 # ################################################################################################################################

@@ -25,7 +25,7 @@ def main():
         from zato.cli_v2.zato_version import get_version
 
         # Needed no matter if are --verbose or not
-        zato_version = get_version()
+        zato_version = get_version()['version']
 
         # This is --version --verbose with all the details
         if '--verbose' in sys.argv:
@@ -108,8 +108,11 @@ def handle_version_verbose(zato_version):
         local_updates = sh.git('status', '--porcelain').rstrip() or '---'
         value_length = max(value_length, max(len(elem) for elem in local_updates.splitlines()))
 
-        # A list of local commits that have not been pushed
-        local_commits = sh.git('cherry', '-v').rstrip() or '---'
+        # A list of local commits that have not been pushed is composed of any commits
+        # made between the first installation commit and the last update commit.
+        # Because all update commits are made by us, anything that was not an update commit
+        # must have been a local commit.
+        local_commits = 'zzz'#sh.git('cherry', '-v').rstrip() or '---'
         value_length = max(value_length, max(len(elem) for elem in local_commits.splitlines()))
 
     # Key/value

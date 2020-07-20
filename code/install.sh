@@ -20,8 +20,6 @@ done
 shift $((OPTIND-1))
 [ "${1:-}" = "--" ] && shift
 
-
-
 #
 # Run an OS-specific installer
 #

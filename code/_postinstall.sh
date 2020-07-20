@@ -52,6 +52,7 @@ $PY_BINARY -m pip install \
     -e ./zato-agent \
     -e ./zato-broker \
     -e ./zato-cli \
+    -e ./zato-cli-v2 \
     -e ./zato-client \
     -e ./zato-cy \
     -e ./zato-distlock \
